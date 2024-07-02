@@ -2,14 +2,15 @@ import streamlit as st
 import cv2
 from ultralytics import YOLO
 import tempfile
+import numpy as np
 
 # Load YOLO model
 model = YOLO('best.pt')
 
 
 def detect_image(image):
-    results = model.predict(image, verbose=False)
-    draw_boxes(image, results)
+    detected = model.predict(image, verbose=False)
+    draw_boxes(image, detected)
     return image
 
 
@@ -51,20 +52,16 @@ if option == "Upload Image":
         st.image(detected_image_rgb, caption="Detected Image", use_column_width=True)
 
 if option == "Use Webcam":
-    cap = cv2.VideoCapture(0)
-    stframe = st.empty()
-    stop_button_key = "stop_button0"
+    img_file_buffer = st.camera_input("Take a picture")
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
+    if img_file_buffer is not None:
+        # Convert image file buffer to OpenCV format
+        bytes_data = img_file_buffer.getvalue()
+        nparr = np.frombuffer(bytes_data, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # Perform detection
-        detected_frame = detect_image(frame)
-        detected_frame_rgb = cv2.cvtColor(detected_frame, cv2.COLOR_BGR2RGB)
-        # Display the frame
-        stframe.image(detected_frame_rgb, channels="RGB")
+        # Perform object detection
+        results = detect_image(frame)
 
-    cap.release()
-    cv2.destroyAllWindows()
+        # Display the processed frame
+        st.image(frame, channels="BGR", caption="Object Detection", use_column_width=True)
