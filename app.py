@@ -31,7 +31,7 @@ def draw_boxes(frame, results):
                         2)
 
 
-st.title("YOLO Object Detection")
+st.title("Dog Breed Detection")
 st.write("Choose to upload an image or use your webcam for object detection.")
 
 option = st.selectbox("Select input method", ("Upload Image", "Use Webcam"))
